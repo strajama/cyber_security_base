@@ -25,6 +25,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.headers().disable();
 
         http.authorizeRequests()
+//                .antMatchers("/h2-console/*").hasAnyAuthority("ADMIN")
                 .anyRequest().authenticated();
 
         http.formLogin()
