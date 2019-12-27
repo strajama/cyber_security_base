@@ -20,16 +20,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        
+
         http.csrf().disable();
-        // no real security at the moment
+        http.headers().disable();
+
         http.authorizeRequests()
-                .anyRequest().permitAll();
+                .anyRequest().authenticated();
+
+        http.formLogin()
+                .permitAll();
     }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+//        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Bean
