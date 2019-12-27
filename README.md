@@ -14,7 +14,6 @@ For login, use username 'ted' and password 'ted'.
 
 According to OWASP: *XSS flaws occur whenever an application includes untrusted data in a new web page without proper validation or escaping, or updates an existing web page with user-supplied data using a browser API that can create HTML or JavaScript. XSS allows attackers to execute scripts in the victim’s browser which can hijack user sessions, deface web sites, or redirect the user to malicious sites.*
 
-
 The HttpOnly flag directs compatible browsers to prevent client-side script from accessing cookies. Including the HttpOnly flag in the Set-Cookie HTTP response header helps mitigate the risk associated with Cross-Site Scripting (XSS) where an attacker's script code might attempt to read the contents of a cookie and exfiltrate information obtained. When set, browsers that support the flag will not reveal the contents of the cookie to a third party via client-side script executed via XSS. 
 
 
@@ -25,6 +24,9 @@ CyberSecurityBaseProjectApplication-class has customize-method with the line:
 *cntxt.setUseHttpOnly(false);*
 
 Remove that or set **false** to **true** so HttpOnly-cookie will be used. When you HttpOnly-cookie is used, it tells the browser that this particular cookie should only be accessed by the server. Any attempt to access the cookie from client script is strictly forbidden. An HttpOnly cookie cannot be accessed by client-side APIs, such as JavaScript. This restriction eliminates the threat of cookie theft via cross-site scripting (XSS).
+
+Also, in done.html there is name and address shown with unescaped text with tag "th:utext". This should be changed to "th:text" or you can inject JavaScript to the page.
+
 
 ## FLAW 2
 
@@ -50,6 +52,7 @@ In SecurityConfiguration-class, uncomment next line in configureGlobal-method:
 
 Now the password isn't shown as plain text.
 
+
 ## FLAW 3
 
 ### Sensitive Data Exposure
@@ -60,11 +63,14 @@ According to OWASP: *Many web applications and APIs do not properly protect sens
 
 #### Where the flaw is and how to fix it
 
-Application shows everyone's name and address who is signed up to the event.
+Application shows everyone's name, address and birthday who is signed up to the event.
 
-Not every user should know who is signed up to the event. Even if that is necessary information for everyone to know, the address should be hidden.
+Not every user should know who is signed up to the event. This information is something that only users with admin roles can access. 
 
-List in done.html should be removed.
+Address and birthday are sensitive data that shouldn't be asked and stored if there isn't special need for that.
+
+List in done.html should be removed and Sign in -info should be changed so that address and birthday aren't needed.
+
 
 ## FLAW 4
 
@@ -77,6 +83,7 @@ According to OWASP: *Security misconfiguration is the most commonly seen issue. 
 #### Where the flaw is and how to fix it
 
 All the Security Headers in Spring are disabled in SecurityConfiguration-class. Also CSRF-token is disabled which makes it ppossible to do CSRF-attack (Cross-Site Request Forgery).
+
 
 ## FLAW 5
 
@@ -91,6 +98,7 @@ According to OWASP: *Restrictions on what authenticated users are allowed to do 
 In CustomUserDetailsService-class you can see that there are two different user roles (USER and ADMIN), but in SecurityConfiguration-class you can see that after authentication user can do anything and roles aren't used. 
 
 At least uncomment *.antMatchers("/h2-console/*").hasAnyAuthority("ADMIN")* so database is not accessed by every user.
+
 
 ## FLAW 6
 

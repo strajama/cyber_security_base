@@ -14,8 +14,9 @@
                 <th>Address</th>
             </tr>
             <tr th:each="signup : ${signups}">
-                <td th:text="${signup.name}">Name</td>
-                <td th:text="${signup.address}">Address</td>
+                <td th:utext="${signup.name}">Name</td>
+                <td th:utext="${signup.address}">Address</td>
+                <td th:utext="${signup.birthday}">Birthday</td>
             </tr>
         </table>
     </body>

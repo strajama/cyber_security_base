@@ -27,9 +27,9 @@ public class SignupController {
     }
 
     @RequestMapping(value = "/form", method = RequestMethod.POST)
-    public String submitForm(Model model, @RequestParam String name, @RequestParam String address) {
+    public String submitForm(Model model, @RequestParam String name, @RequestParam String address, @RequestParam String birthday) {
         
-        signupRepository.save(new Signup(name, address));
+        signupRepository.save(new Signup(name, address, birthday));
         model.addAttribute("signups", signupRepository.findAll());
         
         return "done";

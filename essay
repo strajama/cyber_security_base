@@ -6,18 +6,20 @@ For login, use username 'ted' and password 'ted'.
 
 FLAW 1: Cross-Site Scripting (XSS)
 
-According to OWASP: *XSS flaws occur whenever an application includes untrusted data in a new web page without proper validation or escaping, or updates an existing web page with user-supplied data using a browser API that can create HTML or JavaScript. XSS allows attackers to execute scripts in the victim’s browser which can hijack user sessions, deface web sites, or redirect the user to malicious sites.*
+Cross-site scripting (XSS) is one of the most well-known web vulnerability that can get site hacked. XSS occurs when a web page displays user input (for example with JavaScript) that isn’t properly validated. A hacker can take advantage of the absence of input filtering and cause a web page to execute malicious code on any user’s computer that views the page, for example to send cookies to the attacker.
 
-The HttpOnly flag directs compatible browsers to prevent client-side script from accessing cookies. Including the HttpOnly flag in the Set-Cookie HTTP response header helps mitigate the risk associated with Cross-Site Scripting (XSS) where an attacker's script code might attempt to read the contents of a cookie and exfiltrate information obtained. When set, browsers that support the flag will not reveal the contents of the cookie to a third party via client-side script executed via XSS. 
+Including the HttpOnly flag in the Set-Cookie HTTP response header helps mitigate the risk associated with Cross-Site Scripting (XSS) where an attacker's script code might attempt to read the contents of a cookie and exfiltrate information obtained. The HttpOnly flag directs compatible browsers to prevent client-side script from accessing cookies. When set, browsers that support the flag will not reveal the contents of the cookie to a third party via client-side script executed via XSS. 
 
 CyberSecurityBaseProjectApplication-class has customize-method with the line: cntxt.setUseHttpOnly(false);
 
-Remove that or set false to true so HttpOnly-cookie will be used. When you HttpOnly-cookie is used, it tells the browser that this particular cookie should only be accessed by the server. Any attempt to access the cookie from client script is strictly forbidden. An HttpOnly cookie cannot be accessed by client-side APIs, such as JavaScript. This restriction eliminates the threat of cookie theft via cross-site scripting (XSS).
+Remove that or change false to true so HttpOnly-cookie will be used. When you HttpOnly-cookie is used, it tells the browser that this particular cookie should only be accessed by the server. Any attempt to access the cookie from client script is strictly forbidden. An HttpOnly cookie cannot be accessed by client-side APIs, such as JavaScript. This restriction eliminates the threat of cookie theft via cross-site scripting (XSS).
+
+Also, in done.html there is name and address shown with unescaped text with tag "th:utext". This should be changed to "th:text" or you can write JavaScript to the page, because user input isn't validated. Thymeleaf escapes by default some characters if "th:text" is used.
 
 
 FLAW 2: Broken Authentication
 
-According to OWASP: *Application functions related to authentication and session management are often implemented incorrectly, allowing attackers to compromise passwords, keys, or session tokens, or to exploit other implementation flaws to assume other users’ identities temporarily or permanently.*
+When authentication functions related to the application are implemented uncorrectly, it allows hackers to compromise passwords or session ID's or to exploit other implementation flaws using other users credentials.
 
 Application has many broken authentication flaws, for example:
 1) There is no multi-factor authentication.
@@ -36,34 +38,47 @@ Now the password isn't shown as plain text.
 
 FLAW 3: Sensitive Data Exposure
 
-According to OWASP: *Many web applications and APIs do not properly protect sensitive data, such as financial, healthcare, and PII. Attackers may steal or modify such weakly protected data to conduct credit card fraud, identity theft, or other crimes. Sensitive data may be compromised without extra protection, such as encryption at rest or in transit, and requires special precautions when exchanged with the browser.*
+Sensitive data exposure occurs when an application inadvertently exposes personal data. Sensitive data exposure differs from a data breach, in which an attacker accesses and steals information.
 
-Application shows everyone's name and address who is signed up to the event.
+Data exposure is when data is left exposed in a database or server for anyone to see. Sensitive data exposure occurs as a result of not adequately protecting a database where information is stored. Sensitive data includes sensitive personal information (PII) data such as health records, credentials, personal data, and credit cards, which often require protection as defined by laws or regulations such as the EU GDPR. Sensitive data can be exposed when configuration details for systems and applications are left unsecured online. This might be a result of a multitude of things such as weak encryption, no encryption, software flaws, or when someone mistakenly uploads data to an incorrect database. 
 
-Not every user should know who is signed up to the event. Even if that is necessary information for everyone to know, the address should be hidden.
+Application shows everyone's name, address and birthday who is signed up to the event.
 
-List in done.html should be removed.
+Not every user should know who is signed up to the event. This information is something that only users with admin roles can access. 
+
+Address and birthday are sensitive data that shouldn't be asked and stored if there isn't special need for that.
+
+List in done.html should be removed and Sign in -info should be changed so that address and birthday aren't needed.
 
 
 FLAW 4: Security Misconfiguration
 
-According to OWASP: *Security misconfiguration is the most commonly seen issue. This is commonly a result of insecure default configurations, incomplete or ad hoc configurations, open cloud storage, misconfigured HTTP headers, and verbose error messages containing sensitive information. Not only must all operating systems, frameworks, libraries, and applications be securely configured, but they must be patched and upgraded in a timely fashion.*
+Security Misconfiguration is simply defined as failing to implement all the security controls for a server or web application, or implementing the security controls, but doing so with errors. 
 
-All the Security Headers in Spring are disabled in SecurityConfiguration-class. Also CSRF-token is disabled which makes it ppossible to do CSRF-attack (Cross-Site Request Forgery).
+All the Security Headers in Spring are disabled in SecurityConfiguration-class. For example, clickjacking can be done, because there is no X-Frame-Options header. There is also no cache control. Cache-control is an HTTP header used to specify browser caching policies in both client requests and server responses. Policies include how a resource is cached, where it’s cached and its maximum age before expiring. Now malicious user can use the browser history to view the cached page.
+
+Also CSRF-token is disabled which makes it ppossible to do CSRF-attack (Cross-Site Request Forgery).
 
 
 FLAW 5: Broken Access Control
 
-According to OWASP: *Restrictions on what authenticated users are allowed to do are often not properly enforced. Attackers can exploit these flaws to access unauthorized functionality and/or data, such as access other users' accounts, view sensitive files, modify other users’ data, change access rights, etc.*
+Broken access control shouldn't be  confused with broken authentication. Authentication validates an identity, such as a username and password. After you authenticate, you will be able to access certain pages. If this part of the process is broken, you will be able to access pages and functionality that you are not authorized to see, sometimes unwittingly.
 
-In CustomUserDetailsService-class you can see that there are two different user roles (USER and ADMIN), but in SecurityConfiguration-class you can see that after authentication user can do anything and roles aren't used. 
+Access control should cover three aspects:
 
-At least uncomment ".antMatchers("/h2-console/*").hasAnyAuthority("ADMIN")" so database is not accessed by every user.
+1) authentication - correctly identifying a user when they return to the application.
+2) authorization - deciding what actions a user should and should not be able to perform once they have been authenticated.
+3) permission checking - evaluating authorization at the point-in-time when a user attempts to perform an action.
+
+
+In CustomUserDetailsService-class you can see that there are two different user roles (USER and ADMIN), but in SecurityConfiguration-class you can see that after authentication user can do anything and roles aren't used for authorization. 
+
+At least uncomment ".antMatchers("/h2-console/*").hasAnyAuthority("ADMIN")" so database is not accessed by every user. This is enableing permission checking.
 
 
 FLAW 6: Insufficient Logging & Monitoring
 
-According to OWASP: *Insufficient logging and monitoring, coupled with missing or ineffective integration with incident response, allows attackers to further attack systems, maintain persistence, pivot to more systems, and tamper, extract, or destroy data. Most breach studies show time to detect a breach is over 200 days, typically detected by external parties rather than internal processes or monitoring. *
+This vulnerability is actually not a real vulnerability. Because of it security compromises are sometimes not detected at all or detected much too late. An attacker spends a lot of time examining an application or system to find the vulnerabilities. If a system does not have sufficient logging and monitoring, the attacker can calmly search for errors and vulnerabilities. This increases the chance of successfully finding and exploiting a vulnerability. Ideally, the application has monitoring software that alerts the user to this threatening investigation. If not, at least one mechanism is needed to inform about the intrusion of an attacker.
 
 This flaw is quite obvious, because there is no logging or monitoring implemented in application to detect any kind of attack. There should be at least some monitoring and alerting for logins and access control failures.
 
